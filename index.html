@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>灯塔导航 - 你的网络指南</title>
+    <title>简易导航 - 你的网络指南</title>
     <style>
         * {
             margin: 0;
@@ -72,12 +72,6 @@
         .admin-btn:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
-        }
-
-        .search-box {
-            max-width: 700px;
-            margin: 30px auto;
-            position: relative;
         }
 
         .search-input {
@@ -382,7 +376,7 @@
                 <div class="time-display" id="timeDisplay">加载中...</div>
                 <button class="admin-btn" id="adminBtn" onclick="showLoginModal()">🔐 管理员登录</button>
             </div>
-            <h1>🏮 灯塔导航</h1>
+            <h1>🏮 简易导航</h1>
             <p class="subtitle">探索互联网的精彩世界</p>
         </header>
 
@@ -399,9 +393,15 @@
             </div>
         </div>
 
-        <div class="search-box">
-            <input type="text" class="search-input" id="searchInput" placeholder="搜索网站或工具...">
-            <span class="search-icon">🔍</span>
+        <div class="header" style="text-align: center; padding: 20px 0;">
+            <input type="text" id="searchInput" placeholder="搜索网站 / 工具 / 描述" style="
+            padding: 8px 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            outline: none;
+            width: 260px;
+            ">
         </div>
 
         <div class="categories" id="categoriesContainer">
@@ -427,167 +427,11 @@
                         <span class="link-name">Midjourney</span>
                         <span class="link-desc">AI绘画</span>
                     </a>
-                    <a href="https://www.notion.so/product/ai" class="link-item" target="_blank" data-name="Notion AI">
-                        <span class="link-icon">📝</span>
-                        <span class="link-name">Notion AI</span>
-                        <span class="link-desc">智能笔记</span>
-                    </a>
                 </div>
             </div>
-
-            <!-- 开发工具 -->
-            <div class="category" data-category="dev">
-                <div class="category-header">
-                    <span class="category-icon">💻</span>
-                    <h2 class="category-title">开发工具</h2>
-                </div>
-                <div class="links">
-                    <a href="https://github.com" class="link-item" target="_blank" data-name="GitHub">
-                        <span class="link-icon">🐙</span>
-                        <span class="link-name">GitHub</span>
-                        <span class="link-desc">代码托管</span>
-                    </a>
-                    <a href="https://stackoverflow.com" class="link-item" target="_blank" data-name="Stack Overflow">
-                        <span class="link-icon">📚</span>
-                        <span class="link-name">Stack Overflow</span>
-                        <span class="link-desc">技术问答</span>
-                    </a>
-                    <a href="https://www.cloudflare.com" class="link-item" target="_blank" data-name="Cloudflare">
-                        <span class="link-icon">☁️</span>
-                        <span class="link-name">Cloudflare</span>
-                        <span class="link-desc">CDN服务</span>
-                    </a>
-                    <a href="https://vercel.com" class="link-item" target="_blank" data-name="Vercel">
-                        <span class="link-icon">▲</span>
-                        <span class="link-name">Vercel</span>
-                        <span class="link-desc">网站部署</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 设计资源 -->
-            <div class="category" data-category="design">
-                <div class="category-header">
-                    <span class="category-icon">🎨</span>
-                    <h2 class="category-title">设计资源</h2>
-                </div>
-                <div class="links">
-                    <a href="https://www.figma.com" class="link-item" target="_blank" data-name="Figma">
-                        <span class="link-icon">🖌️</span>
-                        <span class="link-name">Figma</span>
-                        <span class="link-desc">UI设计工具</span>
-                    </a>
-                    <a href="https://dribbble.com" class="link-item" target="_blank" data-name="Dribbble">
-                        <span class="link-icon">🏀</span>
-                        <span class="link-name">Dribbble</span>
-                        <span class="link-desc">设计作品</span>
-                    </a>
-                    <a href="https://unsplash.com" class="link-item" target="_blank" data-name="Unsplash">
-                        <span class="link-icon">📷</span>
-                        <span class="link-name">Unsplash</span>
-                        <span class="link-desc">免费图库</span>
-                    </a>
-                    <a href="https://www.canva.com" class="link-item" target="_blank" data-name="Canva">
-                        <span class="link-icon">✨</span>
-                        <span class="link-name">Canva</span>
-                        <span class="link-desc">在线设计</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 学习资源 -->
-            <div class="category" data-category="learn">
-                <div class="category-header">
-                    <span class="category-icon">📚</span>
-                    <h2 class="category-title">学习资源</h2>
-                </div>
-                <div class="links">
-                    <a href="https://www.coursera.org" class="link-item" target="_blank" data-name="Coursera">
-                        <span class="link-icon">🎓</span>
-                        <span class="link-name">Coursera</span>
-                        <span class="link-desc">在线课程</span>
-                    </a>
-                    <a href="https://www.youtube.com" class="link-item" target="_blank" data-name="YouTube">
-                        <span class="link-icon">▶️</span>
-                        <span class="link-name">YouTube</span>
-                        <span class="link-desc">视频平台</span>
-                    </a>
-                    <a href="https://developer.mozilla.org" class="link-item" target="_blank" data-name="MDN">
-                        <span class="link-icon">📖</span>
-                        <span class="link-name">MDN</span>
-                        <span class="link-desc">Web文档</span>
-                    </a>
-                    <a href="https://www.freecodecamp.org" class="link-item" target="_blank" data-name="freeCodeCamp">
-                        <span class="link-icon">🔥</span>
-                        <span class="link-name">freeCodeCamp</span>
-                        <span class="link-desc">编程学习</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 工作效率 -->
-            <div class="category" data-category="productivity">
-                <div class="category-header">
-                    <span class="category-icon">⚡</span>
-                    <h2 class="category-title">工作效率</h2>
-                </div>
-                <div class="links">
-                    <a href="https://www.notion.so" class="link-item" target="_blank" data-name="Notion">
-                        <span class="link-icon">📋</span>
-                        <span class="link-name">Notion</span>
-                        <span class="link-desc">协作笔记</span>
-                    </a>
-                    <a href="https://trello.com" class="link-item" target="_blank" data-name="Trello">
-                        <span class="link-icon">📊</span>
-                        <span class="link-name">Trello</span>
-                        <span class="link-desc">项目管理</span>
-                    </a>
-                    <a href="https://slack.com" class="link-item" target="_blank" data-name="Slack">
-                        <span class="link-icon">💬</span>
-                        <span class="link-name">Slack</span>
-                        <span class="link-desc">团队沟通</span>
-                    </a>
-                    <a href="https://www.google.com/drive/" class="link-item" target="_blank" data-name="Google Drive">
-                        <span class="link-icon">☁️</span>
-                        <span class="link-name">Google Drive</span>
-                        <span class="link-desc">云存储</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 社交媒体 -->
-            <div class="category" data-category="social">
-                <div class="category-header">
-                    <span class="category-icon">🌐</span>
-                    <h2 class="category-title">社交媒体</h2>
-                </div>
-                <div class="links">
-                    <a href="https://twitter.com" class="link-item" target="_blank" data-name="Twitter">
-                        <span class="link-icon">🐦</span>
-                        <span class="link-name">Twitter</span>
-                        <span class="link-desc">微博客</span>
-                    </a>
-                    <a href="https://www.reddit.com" class="link-item" target="_blank" data-name="Reddit">
-                        <span class="link-icon">🤖</span>
-                        <span class="link-name">Reddit</span>
-                        <span class="link-desc">社区论坛</span>
-                    </a>
-                    <a href="https://www.linkedin.com" class="link-item" target="_blank" data-name="LinkedIn">
-                        <span class="link-icon">💼</span>
-                        <span class="link-name">LinkedIn</span>
-                        <span class="link-desc">职场社交</span>
-                    </a>
-                    <a href="https://discord.com" class="link-item" target="_blank" data-name="Discord">
-                        <span class="link-icon">🎮</span>
-                        <span class="link-name">Discord</span>
-                        <span class="link-desc">语音聊天</span>
-                    </a>
-                </div>
-            </div>
-        </div>
 
         <footer>
-            <p>© 2024 灯塔导航 | 让互联网触手可及</p>
+            <p>© 2024 简易导航 | 让互联网触手可及</p>
         </footer>
     </div>
 
@@ -801,5 +645,132 @@
         // 页面加载时检查登录状态
         checkLoginStatus();
     </script>
+    <script>
+let adminLogged = false;
+let editEnabled = false;
+
+const defaultPassword = "123456"; // 管理员密码
+const storageKey = "navData";
+
+// 初始化数据结构
+let navData = JSON.parse(localStorage.getItem(storageKey)) || {
+    categories: [
+        {
+            name: "AI工具",
+            icon: "🤖",
+            links: [
+                { name: "ChatGPT", url: "https://chat.openai.com", desc: "AI对话助手" },
+                { name: "Claude", url: "https://claude.ai", desc: "AI助手" },
+                { name: "Midjourney", url: "https://midjourney.com", desc: "AI绘图" }
+            ]
+        }
+    ]
+};
+
+// 渲染内容
+function renderCategories() {
+    const container = document.getElementById("categoriesContainer");
+    container.innerHTML = "";
+
+    navData.categories.forEach((cat, catIndex) => {
+        const div = document.createElement("div");
+        div.className = "category";
+
+        div.innerHTML = `
+            <div class="category-header">
+                <span class="category-icon">${cat.icon}</span>
+                <h2 class="category-title">${cat.name}</h2>
+                ${editEnabled ? `<button onclick="deleteCategory(${catIndex})" style="margin-left:auto;color:red">删除</button>` : ""}
+            </div>
+            <div class="links">
+                ${cat.links.map((l, linkIndex) => `
+                    <a href="${l.url}" class="link-item" target="_blank">
+                        <span class="link-name">${l.name}</span>
+                        <span class="link-desc">${l.desc}</span>
+                        ${editEnabled ? `<button onclick="deleteLink(${catIndex},${linkIndex})" style="margin-left:10px;color:red">删</button>` : ""}
+                    </a>
+                `).join("")}
+                ${editEnabled ? `<button onclick="addLink(${catIndex})">添加链接</button>` : ""}
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+// 管理员登录
+function showLoginModal() {
+    const pwd = prompt("请输入管理员密码：");
+    if (pwd === defaultPassword) {
+        adminLogged = true;
+        document.getElementById("adminPanel").classList.remove("hidden");
+    } else {
+        alert("密码错误");
+    }
+}
+
+// 编辑模式
+function editMode() {
+    editEnabled = !editEnabled;
+    renderCategories();
+}
+
+// 添加分类
+function addCategory() {
+    const name = prompt("分类名称：");
+    const icon = prompt("图标(emoji)：");
+    if (!name || !icon) return;
+    navData.categories.push({ name, icon, links: [] });
+    saveData();
+}
+
+// 添加链接
+function addLink(catIndex) {
+    const name = prompt("网站名称：");
+    const url = prompt("网站链接：");
+    const desc = prompt("备注：");
+    navData.categories[catIndex].links.push({ name, url, desc });
+    saveData();
+}
+
+// 删除
+function deleteCategory(i) {
+    if (confirm("确定删除？")) {
+        navData.categories.splice(i, 1);
+        saveData();
+    }
+}
+function deleteLink(ci, li) {
+    navData.categories[ci].links.splice(li, 1);
+    saveData();
+}
+
+// 导出数据
+function exportData() {
+    const blob = new Blob([JSON.stringify(navData, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "navData.json";
+    a.click();
+}
+
+// 保存
+function saveData() {
+    localStorage.setItem(storageKey, JSON.stringify(navData));
+    renderCategories();
+}
+
+renderCategories();
+
+document.getElementById("searchInput").addEventListener("input", function () {
+    const keyword = this.value.toLowerCase();
+    const items = document.querySelectorAll(".link-item");
+
+    items.forEach(item => {
+        const text = item.innerText.toLowerCase();
+        item.style.display = text.includes(keyword) ? "flex" : "none";
+    });
+});
+</script>
+
 </body>
 </html>
