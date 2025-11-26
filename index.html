@@ -1,450 +1,540 @@
-// ================= 配置区域 =================
+// ================= 🚀 配置区域 🚀 =================
+// 您的默认数据，如果KV中没有内容，则会使用此数据
 const DEFAULT_DATA = [
-    {
-      name: "示例分类",
-      icon: "🚀",
-      links: [{ name: "Google", url: "https://google.com", desc: "搜索引擎" }]
+  {
+    name: "示例分类",
+    icon: "🚀",
+    links: [{ name: "Google", url: "https://google.com", desc: "强大的搜索引擎" }]
+  }
+];
+
+// ================= ⚙️ Worker 后端逻辑 ⚙️ =================
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+    };
+
+    // 1. 获取数据 (GET)
+    if (url.pathname === '/api/data' && request.method === 'GET') {
+      try {
+        let data = await env.NAV_KV.get('nav_data');
+        return new Response(data || JSON.stringify(DEFAULT_DATA), { headers });
+      } catch (e) {
+        return new Response(JSON.stringify(DEFAULT_DATA), { headers });
+      }
     }
-  ];
-  
-  // ================= Worker 后端逻辑 =================
-  export default {
-    async fetch(request, env) {
-      const url = new URL(request.url);
-      const headers = { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*' 
-      };
-  
-      // 1. 获取数据 (GET)
-      if (url.pathname === '/api/data' && request.method === 'GET') {
-        try {
-          let data = await env.NAV_KV.get('nav_data');
-          return new Response(data || JSON.stringify(DEFAULT_DATA), { headers });
-        } catch (e) {
-          return new Response(JSON.stringify(DEFAULT_DATA), { headers });
+
+    // 2. 登录验证 (POST)
+    if (url.pathname === '/api/login' && request.method === 'POST') {
+      try {
+        const { password } = await request.json();
+        if (password === env.ADMIN_PASSWORD) {
+           return new Response(JSON.stringify({ success: true }), { headers });
+        } else {
+           return new Response(JSON.stringify({ success: false }), { status: 401, headers });
         }
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false }), { status: 500, headers });
       }
-  
-      // 2. 登录验证 (POST)
-      if (url.pathname === '/api/login' && request.method === 'POST') {
-        try {
-          const { password } = await request.json();
-          if (password === env.ADMIN_PASSWORD) {
-             return new Response(JSON.stringify({ success: true }), { headers });
-          } else {
-             return new Response(JSON.stringify({ success: false }), { status: 401, headers });
-          }
-        } catch (e) {
-          return new Response(JSON.stringify({ success: false }), { status: 500, headers });
-        }
-      }
-  
-      // 3. 保存数据 (POST)
-      if (url.pathname === '/api/data' && request.method === 'POST') {
-        try {
-          const reqBody = await request.json();
-          if (reqBody.password !== env.ADMIN_PASSWORD) {
-            return new Response(JSON.stringify({ success: false, message: "密码错误" }), { 
-              status: 401, headers 
-            });
-          }
-          await env.NAV_KV.put('nav_data', JSON.stringify(reqBody.data));
-          return new Response(JSON.stringify({ success: true }), { headers });
-        } catch (e) {
-          return new Response(JSON.stringify({ success: false, message: e.message }), { status: 500, headers });
-        }
-      }
-  
-      // 4. 返回 HTML
-      return new Response(HTML_CONTENT, {
-        headers: { 'Content-Type': 'text/html;charset=UTF-8' },
-      });
-    },
-  };
-  
-  // ================= 前端页面代码 =================
-  const HTML_CONTENT = `
-  <!DOCTYPE html>
-  <html lang="zh-CN">
-  <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>云端导航</title>
-      <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>⭐</text></svg>">
-      <style>
-          /* --- 变量定义 --- */
-          :root {
-              --bg-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-              --text-color: #333;
-              --card-bg: rgba(255, 255, 255, 0.9);
-              --card-hover-shadow: rgba(0,0,0,0.1);
-              --header-text: #fff;
-              --header-bg: rgba(255, 255, 255, 0.25);
-              --link-bg: #f8f9fa;
-              --link-hover-text: #fff;
-              --input-bg: #fff;
-              --input-border: #eee;
-              --modal-bg: #fff;
-          }
-  
-          /* 黑夜模式 */
-          [data-theme="dark"] {
-              --bg-gradient: linear-gradient(135deg, #1e2024 0%, #23272e 100%);
-              --text-color: #e0e0e0;
-              --card-bg: rgba(45, 49, 56, 0.95);
-              --card-hover-shadow: rgba(0,0,0,0.4);
-              --header-text: #e0e0e0;
-              --header-bg: rgba(0, 0, 0, 0.3);
-              --link-bg: #363b44;
-              --link-hover-text: #fff;
-              --input-bg: #2d3138;
-              --input-border: #444;
-              --modal-bg: #2d3138;
-          }
-  
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Microsoft YaHei', sans-serif;
-              background: var(--bg-gradient);
-              min-height: 100vh;
-              color: var(--text-color);
-              transition: background 0.5s ease;
-          }
-          .container { max-width: 1400px; margin: 0 auto; padding: 40px 20px; }
-  
-          header { text-align: center; margin-bottom: 40px; color: var(--header-text); }
-          .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-          
-          .top-btn-group { display: flex; gap: 10px; }
-          .glass-btn {
-              background: var(--header-bg); padding: 10px 20px; border-radius: 25px;
-              backdrop-filter: blur(10px); color: var(--header-text); 
-              cursor: pointer; border: 1px solid rgba(255,255,255,0.2); font-weight: 500;
-              display: flex; align-items: center; gap: 5px; transition: 0.3s;
-              white-space: nowrap; /* 防止时间换行 */
-          }
-          .glass-btn:hover { background: rgba(255,255,255,0.4); transform: translateY(-2px); }
-  
-          .search-container { text-align: center; margin-bottom: 30px; }
-          .search-input { 
-              width: 100%; max-width: 500px; padding: 15px 25px; 
-              border-radius: 50px; border: none; outline: none; 
-              box-shadow: 0 10px 30px rgba(0,0,0,0.1); font-size: 16px; 
-              background: var(--input-bg); color: var(--text-color);
-          }
-  
-          .categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; }
-          .category { 
-              background: var(--card-bg); border-radius: 20px; padding: 25px; 
-              transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
-          }
-          .category:hover { transform: translateY(-5px); box-shadow: 0 15px 30px var(--card-hover-shadow); }
-          
-          .category-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid rgba(128,128,128,0.1); padding-bottom: 10px; }
-          .category-title { font-size: 1.3em; font-weight: 600; color: var(--text-color); }
-  
-          .links { display: grid; gap: 10px; }
-          .link-item { 
-              display: flex; align-items: center; padding: 12px; 
-              background: var(--link-bg); border-radius: 10px; 
-              text-decoration: none; color: var(--text-color); 
-              transition: 0.2s; position: relative; 
-          }
-          .link-item:hover { 
-              background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); 
-              color: var(--link-hover-text); 
-          }
-          .link-content { flex: 1; display: flex; flex-direction: column; }
-          .link-name { font-weight: bold; }
-          .link-desc { font-size: 0.8em; opacity: 0.7; margin-top: 2px; }
-  
-          .admin-panel { 
-              background: var(--card-bg); padding: 15px 25px; 
-              border-radius: 15px; margin-bottom: 20px; 
-              display: flex; justify-content: space-between; align-items: center; 
-              box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
-          }
-          .hidden { display: none !important; }
-  
-          .btn-mini { padding: 4px 8px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; margin-left: 5px; opacity: 0.8; }
-          .btn-del { background: #ff7675; color: white; }
-          .btn-add { background: #55efc4; color: #008c72; width: 100%; margin-top: 10px; padding: 8px; font-weight: bold; }
-          
-          .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 999; }
-          .modal.show { display: flex; }
-          .modal-content { 
-              background: var(--modal-bg); padding: 30px; border-radius: 15px; 
-              width: 90%; max-width: 350px; text-align: center; 
-              box-shadow: 0 20px 50px rgba(0,0,0,0.3); color: var(--text-color);
-          }
-          .form-input { 
-              width: 100%; padding: 12px; margin: 15px 0; 
-              border: 1px solid var(--input-border); border-radius: 8px; 
-              background: var(--input-bg); color: var(--text-color);
-          }
-          .btn-primary { width: 100%; padding: 12px; background: #6c5ce7; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
-  
-          @media (max-width: 768px) {
-              .header-top { flex-direction: column; gap: 15px; }
-              .top-btn-group { width: 100%; justify-content: center; }
-              .glass-btn { width: 100%; justify-content: center; } /* 手机端时间居中 */
-          }
-      </style>
-  </head>
-  <body>
-      <div class="container">
-          <header>
-              <div class="header-top">
-                  <div class="glass-btn" style="cursor: default;" id="timeDisplay">
-                      📅 加载中...
-                  </div>
-                  
-                  <div class="top-btn-group">
-                      <button class="glass-btn" onclick="toggleTheme()" id="themeBtn">🌞</button>
-                      <button class="glass-btn" id="loginBtn" onclick="toggleLogin()">🔐 管理员登录</button>
-                  </div>
-              </div>
-              
-              <h1 style="text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">☁️ 云端导航</h1>
-              <p style="opacity:0.9">安全验证 · 自动夜间模式</p>
-          </header>
-  
-          <div class="admin-panel hidden" id="adminPanel">
-              <div>
-                  <strong>👋 管理员模式</strong> 
-                  <span id="statusMsg" style="margin-left:10px; font-size:14px; color:green"></span>
-              </div>
-              <div>
-                  <button class="btn-mini" style="background:#0984e3; color:white; padding:8px 15px;" onclick="addCategory()">➕ 新建分类</button>
-                  <button class="btn-mini" style="background:#636e72; color:white; padding:8px 15px;" onclick="logout()">退出</button>
-              </div>
-          </div>
-  
-          <div class="search-container">
-              <input type="text" id="searchInput" class="search-input" placeholder="🔍 搜索网站、工具或描述...">
-          </div>
-  
-          <div class="categories" id="categoriesContainer">
-              <div style="text-align:center; padding:50px; opacity:0.6;">⏳ 数据加载中...</div>
-          </div>
-          
-          <footer style="text-align:center; padding:30px; opacity:0.6; font-size:12px; color: var(--text-color)">
-              © 2024 Powered by Chenyun
-          </footer>
-      </div>
-  
-      <div class="modal" id="loginModal">
-          <div class="modal-content">
-              <h2 style="margin-bottom:10px;">管理员认证</h2>
-              <p style="font-size:12px; opacity:0.7; margin-bottom:15px">请输入 ADMIN_PASSWORD</p>
-              <input type="password" id="passwordInput" class="form-input" placeholder="******">
-              <button class="btn-primary" id="submitLoginBtn" onclick="handleLogin()">确认登录</button>
-              <button style="margin-top:15px; background:none; border:none; color:inherit; opacity:0.6; cursor:pointer" onclick="toggleLogin()">取消</button>
-          </div>
-      </div>
-  
-      <script>
-          let navData = [];
-          let isAdmin = false;
-          let adminPassword = ""; 
-  
-          // 1. 主题系统
-          function initTheme() {
-              const savedTheme = localStorage.getItem('theme');
-              if (savedTheme) {
-                  applyTheme(savedTheme);
-                  return;
-              }
-              const hour = new Date().getHours();
-              const isNight = hour >= 18 || hour < 6;
-              applyTheme(isNight ? 'dark' : 'light');
-          }
-  
-          function toggleTheme() {
-              const current = document.documentElement.getAttribute('data-theme');
-              const target = current === 'dark' ? 'light' : 'dark';
-              applyTheme(target);
-              localStorage.setItem('theme', target);
-          }
-  
-          function applyTheme(theme) {
-              if (theme === 'dark') {
-                  document.documentElement.setAttribute('data-theme', 'dark');
-                  document.getElementById('themeBtn').textContent = '🌙';
-              } else {
-                  document.documentElement.setAttribute('data-theme', 'light');
-                  document.getElementById('themeBtn').textContent = '🌞';
-              }
-          }
-  
-          // 2. 数据与交互
-          async function fetchData() {
-              try {
-                  const res = await fetch('/api/data');
-                  navData = await res.json();
-                  render();
-              } catch (e) {
-                  console.error(e);
-                  alert("加载失败");
-              }
-          }
-  
-          async function saveData() {
-              const msg = document.getElementById('statusMsg');
-              msg.textContent = "正在同步...";
-              try {
-                  const res = await fetch('/api/data', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ password: adminPassword, data: navData })
-                  });
-                  const result = await res.json();
-                  if (result.success) {
-                      msg.textContent = "✅ 保存成功";
-                      setTimeout(() => msg.textContent = "", 2000);
-                      render();
-                  } else {
-                      msg.textContent = "❌ 保存失败";
-                      if(result.status === 401) alert("身份验证失效");
-                  }
-              } catch (e) {
-                  msg.textContent = "❌ 网络错误";
-              }
-          }
-  
-          // 3. 登录逻辑
-          function toggleLogin() {
-              const modal = document.getElementById('loginModal');
-              modal.classList.toggle('show');
-              if (modal.classList.contains('show')) {
-                  document.getElementById('passwordInput').focus();
-              }
-              document.getElementById('passwordInput').value = '';
-          }
-  
-          async function handleLogin() {
-              const pwd = document.getElementById('passwordInput').value;
-              const btn = document.getElementById('submitLoginBtn');
-              if (!pwd) return alert("密码不能为空");
-              btn.textContent = "验证中...";
-              btn.disabled = true;
-  
-              try {
-                  const res = await fetch('/api/login', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ password: pwd })
-                  });
-                  const result = await res.json();
-                  if (result.success) {
-                      adminPassword = pwd;
-                      isAdmin = true;
-                      document.getElementById('adminPanel').classList.remove('hidden');
-                      document.getElementById('loginBtn').classList.add('hidden');
-                      toggleLogin();
-                      render();
-                  } else {
-                      alert("❌ 密码错误");
-                  }
-              } catch (e) {
-                  alert("无法连接服务器");
-              } finally {
-                  btn.textContent = "确认登录";
-                  btn.disabled = false;
-              }
-          }
-  
-          function logout() {
-              isAdmin = false;
-              adminPassword = "";
-              document.getElementById('adminPanel').classList.add('hidden');
-              document.getElementById('loginBtn').classList.remove('hidden');
-              render();
-          }
-  
-          // 4. 渲染与辅助
-          function render() {
-              const container = document.getElementById('categoriesContainer');
-              container.innerHTML = '';
-              navData.forEach((cat, i) => {
-                  let linksHtml = '';
-                  cat.links.forEach((link, j) => {
-                      linksHtml += '<a href="' + link.url + '" target="_blank" class="link-item" data-search="' + link.name + ' ' + link.desc + '">' +
-                          '<div class="link-content">' +
-                              '<span class="link-name">' + link.name + '</span>' +
-                              '<span class="link-desc">' + link.desc + '</span>' +
-                          '</div>' +
-                          (isAdmin ? '<button class="btn-mini btn-del" onclick="event.preventDefault(); delLink(' + i + ',' + j + ')">×</button>' : '') +
-                      '</a>';
-                  });
-                  if (isAdmin) linksHtml += '<button class="btn-mini btn-add" onclick="addLink(' + i + ')">+ 添加链接</button>';
-                  container.innerHTML += '<div class="category">' +
-                      '<div class="category-header">' +
-                          '<div class="category-title">' + cat.icon + ' ' + cat.name + '</div>' +
-                          (isAdmin ? '<button class="btn-mini btn-del" onclick="delCat(' + i + ')">删除</button>' : '') +
-                      '</div>' +
-                      '<div class="links">' + linksHtml + '</div>' +
-                  '</div>';
-              });
-              filterLinks();
-          }
-  
-          function addCategory() {
-              const name = prompt("分类名称:"); if(!name) return;
-              const icon = prompt("Emoji:", "📂");
-              navData.push({name, icon: icon||"📂", links:[]}); saveData();
-          }
-          function delCat(i) { if(confirm("删除此分类?")) { navData.splice(i,1); saveData(); } }
-          function addLink(i) {
-              const name = prompt("名称:"); if(!name) return;
-              const url = prompt("网址:", "https://");
-              const desc = prompt("描述:");
-              navData[i].links.push({name, url, desc}); saveData();
-          }
-          function delLink(i,j) { if(confirm("删除链接?")) { navData[i].links.splice(j,1); saveData(); } }
-  
-          document.getElementById('searchInput').addEventListener('input', filterLinks);
-          function filterLinks() {
-              const q = document.getElementById('searchInput').value.toLowerCase();
-              document.querySelectorAll('.link-item').forEach(el => {
-                  const text = el.getAttribute('data-search').toLowerCase();
-                  el.style.display = text.includes(q) ? 'flex' : 'none';
-              });
-              document.querySelectorAll('.category').forEach(cat => {
-                  const hasVisible = cat.querySelectorAll('.link-item[style="display: flex;"]').length > 0;
-                  cat.style.display = (q === '' || hasVisible || isAdmin) ? 'block' : 'none';
-              });
-          }
-          
-          // --- 核心修改：时间显示逻辑 ---
-          function updateTime() {
-              const now = new Date();
-              const year = now.getFullYear();
-              const month = String(now.getMonth() + 1).padStart(2, '0');
-              const day = String(now.getDate()).padStart(2, '0');
-              const hours = String(now.getHours()).padStart(2, '0');
-              const minutes = String(now.getMinutes()).padStart(2, '0');
-              const seconds = String(now.getSeconds()).padStart(2, '0');
-              
-              // 加上星期几
-              const weeks = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
-              const week = weeks[now.getDay()];
-  
-              document.getElementById('timeDisplay').textContent = 
-                  \`\${year}年\${month}月\${day}日 \${week} \${hours}:\${minutes}:\${seconds}\`;
-          }
-          setInterval(updateTime, 1000);
-          updateTime();
-  
-          // 绑定回车键
-          document.getElementById('passwordInput').addEventListener('keypress', function (e) {
-              if (e.key === 'Enter') handleLogin();
+    }
+
+    // 3. 保存数据 (POST)
+    if (url.pathname === '/api/data' && request.method === 'POST') {
+      try {
+        const reqBody = await request.json();
+        if (reqBody.password !== env.ADMIN_PASSWORD) {
+          return new Response(JSON.stringify({ success: false, message: "密码错误" }), {
+            status: 401, headers
           });
-  
-          initTheme();
-          fetchData();
-      </script>
-  </body>
-  </html>
-  `;
+        }
+        await env.NAV_KV.put('nav_data', JSON.stringify(reqBody.data));
+        return new Response(JSON.stringify({ success: true }), { headers });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, message: e.message }), { status: 500, headers });
+      }
+    }
+
+    // 4. 返回 HTML
+    return new Response(HTML_CONTENT, {
+      headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+    });
+  },
+};
+
+
+// ================= 🎨 前端页面代码 🎨 =================
+const HTML_CONTENT = `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌌 云端导航</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🌌</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* 🎨 --- 变量与基础样式 --- 🎨 */
+        :root {
+            --text-color: #333;
+            --header-text: #fff;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --card-border: rgba(255, 255, 255, 0.9);
+            --card-shadow: rgba(0,0,0,0.05);
+            --card-hover-shadow: rgba(9, 30, 66, 0.15);
+            --glass-bg: rgba(255, 255, 255, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --glass-hover-bg: rgba(255, 255, 255, 0.4);
+            --link-bg: rgba(255, 255, 255, 0.5);
+            --link-hover-text: #fff;
+            --link-hover-bg: linear-gradient(45deg, #6a82fb, #fc5c7d);
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --modal-bg: #fff;
+            --font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Microsoft YaHei', sans-serif;
+        }
+
+        [data-theme="dark"] {
+            --text-color: #e0e0e0;
+            --header-text: #f0f0f0;
+            --card-bg: rgba(25, 28, 34, 0.7);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --card-shadow: rgba(0,0,0,0.2);
+            --card-hover-shadow: rgba(0, 0, 0, 0.4);
+            --glass-bg: rgba(0, 0, 0, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-hover-bg: rgba(0, 0, 0, 0.4);
+            --link-bg: rgba(44, 48, 56, 0.8);
+            --link-hover-text: #fff;
+            --link-hover-bg: linear-gradient(45deg, #8A2387, #E94057, #F27121);
+            --input-bg: rgba(44, 48, 56, 1);
+            --modal-bg: #1f232a;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-family);
+            color: var(--text-color);
+            background-color: #1e2024; /* 备用背景色 */
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 🌌 --- 动态极光背景 --- 🌌 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+            background: radial-gradient(circle, rgba(255,92,125,0.2) 0%, rgba(106,130,251,0.2) 100%);
+            animation: aurora 20s infinite linear;
+        }
+
+        [data-theme="dark"] body::before {
+            background: radial-gradient(circle, rgba(138,35,135,0.3) 0%, rgba(233,64,87,0.3) 35%, rgba(242,113,33,0.3) 100%);
+        }
+
+        @keyframes aurora {
+            0% { transform: rotate(0deg) scale(1.5); }
+            50% { transform: rotate(180deg) scale(2); }
+            100% { transform: rotate(360deg) scale(1.5); }
+        }
+
+        /* 🏙️ --- 主体布局 --- 🏙️ */
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 40px 20px;
+            height: 100vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* 移动端平滑滚动 */
+        }
+        
+        /* 隐藏滚动条 */
+        .container::-webkit-scrollbar { display: none; }
+        .container { -ms-overflow-style: none; scrollbar-width: none; }
+
+
+        header { text-align: center; margin-bottom: 40px; color: var(--header-text); }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        
+        /* 🔍 --- 搜索与头部 --- 🔍 */
+        .glass-btn {
+            background: var(--glass-bg); padding: 10px 20px; border-radius: 50px;
+            backdrop-filter: blur(10px); color: var(--header-text); 
+            cursor: pointer; border: 1px solid var(--glass-border); font-weight: 500;
+            display: flex; align-items: center; gap: 8px; 
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .glass-btn:hover { background: var(--glass-hover-bg); transform: translateY(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        .search-container { margin-bottom: 40px; }
+        .search-input { 
+            width: 100%; max-width: 500px; padding: 15px 30px; 
+            border-radius: 50px; border: none; outline: none; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1); font-size: 16px; 
+            background: var(--input-bg); color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+        .search-input:focus { box-shadow: 0 10px 40px var(--card-hover-shadow), 0 0 0 4px rgba(106, 130, 251, 0.5); }
+
+        /* 🗂️ --- 分类与链接 --- 🗂️ */
+        .categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; }
+        .category { 
+            background: var(--card-bg); border-radius: 20px; padding: 25px; 
+            transition: 0.4s ease; box-shadow: 0 8px 30px var(--card-shadow);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+        }
+        .category:hover { transform: translateY(-8px); box-shadow: 0 20px 40px var(--card-hover-shadow); }
+        
+        .category-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px; }
+        .category-title { font-size: 1.4em; font-weight: 700; color: var(--text-color); }
+
+        .links { display: grid; gap: 12px; }
+        .link-item { 
+            display: flex; align-items: center; padding: 12px; 
+            background: var(--link-bg); border-radius: 12px; 
+            text-decoration: none; color: var(--text-color); 
+            transition: 0.3s ease; position: relative;
+            overflow: hidden;
+        }
+        .link-item:hover { 
+            background: var(--link-hover-bg);
+            color: var(--link-hover-text); 
+            transform: scale(1.03);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .link-item:hover .link-desc { color: var(--link-hover-text); opacity: 0.8; }
+        
+        .link-content { flex: 1; }
+        .link-name { font-weight: 700; }
+        .link-desc { font-size: 0.85em; opacity: 0.7; margin-top: 4px; transition: color 0.3s ease; }
+
+        /* 🔒 --- 管理面板与模态框 --- 🔒 */
+        .admin-panel { background: var(--card-bg); backdrop-filter: blur(10px); padding: 15px 25px; border-radius: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid var(--card-border); }
+        .hidden { display: none !important; }
+
+        .btn-mini { padding: 5px 10px; font-size: 13px; border-radius: 8px; border: none; cursor: pointer; margin-left: 5px; opacity: 0.9; transition: all 0.2s ease; font-weight: 500; }
+        .btn-mini:hover { opacity: 1; transform: scale(1.05); }
+        .btn-del { background: #ff5252; color: white; }
+        .btn-add { background: #44e08c; color: #006432; width: 100%; margin-top: 10px; padding: 10px; font-weight: bold; font-size: 14px; }
+        .btn-action { padding: 8px 15px; }
+        .btn-new-cat { background: #377dff; color: white; }
+        .btn-logout { background: #7f8fa6; color: white; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); justify-content: center; align-items: center; z-index: 999; }
+        .modal.show { display: flex; animation: fadeIn 0.3s ease; }
+        .modal-content { background: var(--modal-bg); padding: 40px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); color: var(--text-color); animation: slideIn 0.4s ease; }
+        .form-input { width: 100%; padding: 14px; margin: 15px 0; border: 1px solid var(--glass-border); border-radius: 10px; background: var(--input-bg); color: var(--text-color); font-size: 16px; }
+        .btn-primary { width: 100%; padding: 14px; background: linear-gradient(45deg, #6a82fb, #fc5c7d); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.3s ease; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(106, 130, 251, 0.4); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 📱 --- 响应式布局 --- 📱 */
+        @media (max-width: 768px) {
+            .header-top { flex-direction: column; gap: 15px; }
+            .top-btn-group { width: 100%; justify-content: space-around; }
+            .glass-btn { flex-grow: 1; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <div class="glass-btn" style="cursor: default;" id="timeDisplay">📅 加载中...</div>
+                <div class="top-btn-group">
+                    <button class="glass-btn" onclick="toggleTheme()" id="themeBtn">🌞</button>
+                    <button class="glass-btn" id="loginBtn" onclick="toggleLogin()">🔐 管理员</button>
+                </div>
+            </div>
+            
+            <h1 style="text-shadow: 2px 2px 8px rgba(0,0,0,0.2); font-size: 2.8em; font-weight: 700;">🌌 云端导航</h1>
+            <p style="opacity:0.9; font-weight: 300;">您的云端个人门户</p>
+        </header>
+
+        <div class="admin-panel hidden" id="adminPanel">
+            <div>
+                <strong>👋 管理员模式</strong> 
+                <span id="statusMsg" style="margin-left:10px; font-size:14px; color:green"></span>
+            </div>
+            <div>
+                <button class="btn-mini btn-action btn-new-cat" onclick="addCategory()">➕ 新建分类</button>
+                <button class="btn-mini btn-action btn-logout" onclick="logout()">退出</button>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 搜索网站、工具或描述...">
+        </div>
+
+        <div class="categories" id="categoriesContainer">
+            <div style="text-align:center; padding:50px; opacity:0.6;">⏳ 数据加载中...</div>
+        </div>
+        
+        <footer style="text-align:center; padding:30px; opacity:0.6; font-size:12px; color: var(--text-color)">
+            © 2024 Powered by Chenyun
+        </footer>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <h2 style="margin-bottom:10px;">管理员认证</h2>
+            <p style="font-size:12px; opacity:0.7; margin-bottom:15px">请输入 ADMIN_PASSWORD</p>
+            <input type="password" id="passwordInput" class="form-input" placeholder="******">
+            <button class="btn-primary" id="submitLoginBtn" onclick="handleLogin()">确认登录</button>
+            <button style="margin-top:15px; background:none; border:none; color:inherit; opacity:0.6; cursor:pointer" onclick="toggleLogin()">取消</button>
+        </div>
+    </div>
+
+    <script>
+        // ================= 📜 前端脚本逻辑 📜 =================
+        let navData = [];
+        let isAdmin = false;
+        let adminPassword = ""; 
+
+        // 1. 主题系统
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                applyTheme(savedTheme);
+                return;
+            }
+            const hour = new Date().getHours();
+            const isNight = hour >= 18 || hour < 6;
+            applyTheme(isNight ? 'dark' : 'light');
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const target = current === 'dark' ? 'light' : 'dark';
+            applyTheme(target);
+            localStorage.setItem('theme', target);
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('themeBtn').textContent = '🌙';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.getElementById('themeBtn').textContent = '🌞';
+            }
+        }
+
+        // 2. 数据与交互
+        async function fetchData() {
+            try {
+                const res = await fetch('/api/data');
+                navData = await res.json();
+                render();
+            } catch (e) {
+                console.error(e);
+                alert("数据加载失败，请检查网络或Worker状态。");
+            }
+        }
+
+        async function saveData() {
+            const msg = document.getElementById('statusMsg');
+            msg.textContent = "正在同步...";
+            msg.style.color = '#377dff';
+            try {
+                const res = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: adminPassword, data: navData })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    msg.textContent = "✅ 保存成功";
+                    msg.style.color = '#44e08c';
+                    setTimeout(() => msg.textContent = "", 2000);
+                    render();
+                } else {
+                    throw new Error(result.message || "保存失败");
+                }
+            } catch (e) {
+                msg.textContent = '❌ ' + e.message;
+                msg.style.color = '#ff5252';
+                if(e.message.includes("密码")) alert("身份验证失效，请重新登录！");
+            }
+        }
+
+        // 3. 登录逻辑
+        function toggleLogin() {
+            const modal = document.getElementById('loginModal');
+            modal.classList.toggle('show');
+            if (modal.classList.contains('show')) {
+                document.getElementById('passwordInput').focus();
+            }
+            document.getElementById('passwordInput').value = '';
+        }
+
+        async function handleLogin() {
+            const pwd = document.getElementById('passwordInput').value;
+            const btn = document.getElementById('submitLoginBtn');
+            if (!pwd) {
+              alert("密码不能为空");
+              return;
+            }
+            btn.textContent = "验证中...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: pwd })
+                });
+                if (!res.ok) throw new Error("密码错误");
+                const result = await res.json();
+                if (result.success) {
+                    adminPassword = pwd;
+                    isAdmin = true;
+                    document.getElementById('adminPanel').classList.remove('hidden');
+                    document.getElementById('loginBtn').classList.add('hidden');
+                    toggleLogin();
+                    render();
+                } else {
+                    throw new Error("密码错误");
+                }
+            } catch (e) {
+                alert('❌ 登录失败: ' + e.message);
+            } finally {
+                btn.textContent = "确认登录";
+                btn.disabled = false;
+            }
+        }
+
+        function logout() {
+            isAdmin = false;
+            adminPassword = "";
+            document.getElementById('adminPanel').classList.add('hidden');
+            document.getElementById('loginBtn').classList.remove('hidden');
+            render();
+        }
+
+        // 4. 渲染与DOM操作
+        function render() {
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = '';
+            if (!navData || navData.length === 0) {
+              container.innerHTML = '<div style="text-align:center; padding:50px; opacity:0.6;">没有数据，请先登录并添加分类。</div>';
+              return;
+            }
+            navData.forEach(function(cat, i) {
+                var linksHtml = cat.links.map(function(link, j) {
+                    var adminButton = isAdmin ? '<button class="btn-mini btn-del" onclick="event.preventDefault(); delLink(' + i + ',' + j + ')">×</button>' : '';
+                    return (
+                        '<a href="' + link.url + '" target="_blank" class="link-item" data-search="' + link.name + ' ' + link.desc + '">' +
+                            '<div class="link-content">' +
+                                '<span class="link-name">' + link.name + '</span>' +
+                                '<span class="link-desc">' + link.desc + '</span>' +
+                            '</div>' +
+                            adminButton +
+                        '</a>'
+                    );
+                }).join('');
+
+                if (isAdmin) {
+                    linksHtml += '<button class="btn-mini btn-add" onclick="addLink(' + i + ')">+ 添加链接</button>';
+                }
+                
+                var categoryAdminButton = isAdmin ? '<button class="btn-mini btn-del" onclick="delCat(' + i + ')">删除</button>' : '';
+                container.innerHTML += (
+                    '<div class="category">' +
+                        '<div class="category-header">' +
+                            '<div class="category-title">' + cat.icon + ' ' + cat.name + '</div>' +
+                            categoryAdminButton +
+                        '</div>' +
+                        '<div class="links">' + linksHtml + '</div>' +
+                    '</div>'
+                );
+            });
+            filterLinks();
+        }
+        
+        // 5. 管理员操作
+        function addCategory() {
+            const name = prompt("请输入分类名称:"); 
+            if(!name) return;
+            const icon = prompt("请输入分类的 Emoji 图标:", "📂");
+            navData.push({name: name, icon: icon || "📂", links:[]}); 
+            saveData();
+        }
+        function delCat(i) { 
+            if(confirm('确定要删除分类「' + navData[i].name + '」吗？')) { 
+                navData.splice(i,1); 
+                saveData(); 
+            } 
+        }
+        function addLink(i) {
+            const name = prompt("请输入链接名称:"); 
+            if(!name) return;
+            const url = prompt("请输入网址:", "https://");
+            if(!url) return;
+            const desc = prompt("请输入链接描述:");
+            navData[i].links.push({name: name, url: url, desc: desc}); 
+            saveData();
+        }
+        function delLink(i,j) { 
+            if(confirm('确定要删除链接「' + navData[i].links[j].name + '」吗？')) { 
+                navData[i].links.splice(j,1); 
+                saveData(); 
+            } 
+        }
+
+        // 6. 搜索过滤
+        document.getElementById('searchInput').addEventListener('input', filterLinks);
+        function filterLinks() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.link-item').forEach(function(el) {
+                const text = el.getAttribute('data-search').toLowerCase();
+                el.style.display = text.includes(q) ? 'flex' : 'none';
+            });
+            document.querySelectorAll('.category').forEach(function(cat) {
+                const hasVisible = cat.querySelector('.link-item[style="display: flex;"]');
+                cat.style.display = (q === '' || hasVisible || isAdmin) ? 'block' : 'none';
+            });
+        }
+        
+        // 7. 辅助函数与初始化
+        function updateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const weeks = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+            const week = weeks[now.getDay()];
+
+            document.getElementById('timeDisplay').textContent = 
+                year + '年' + month + '月' + day + '日 ' + week + ' ' + hours + ':' + minutes + ':' + seconds;
+        }
+
+        document.getElementById('passwordInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') handleLogin();
+        });
+
+        // --- 🚀 启动！ ---
+        initTheme();
+        fetchData();
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+    </script>
+</body>
+</html>
+`;
